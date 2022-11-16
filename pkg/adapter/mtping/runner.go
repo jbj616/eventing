@@ -98,6 +98,8 @@ func (a *cronJobsRunner) AddSchedule(source *sourcesv1.PingSource) cron.EntryID 
 	// See https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/messaging.md#span-name
 	spanName := source.Status.SinkURI.String() + " send"
 
+	ctx = context.WithValue(ctx, "alertID", source.Spec.AlertID)
+
 	ctx = observability.WithSpanData(ctx, spanName, int(trace.SpanKindProducer),
 		observability.K8sAttributes(source.Name, source.Namespace, sourcesv1.Resource("pingsource").String()))
 
@@ -136,6 +138,11 @@ func (a *cronJobsRunner) cronTick(ctx context.Context, event cloudevents.Event) 
 		target := cecontext.TargetFrom(ctx).String()
 		source := event.Context.GetSource()
 
+		targetAlertID := ctx.Value("alertID")
+
+		// cron job start 알림
+		fmt.Println(targetAlertID)
+
 		// Provide a delay so not all ping fired instantaneously distribute load on resources.
 		time.Sleep(time.Duration(rand.Intn(500)) * time.Millisecond) //nolint:gosec // Cryptographic randomness not necessary here.
 
@@ -145,6 +152,7 @@ func (a *cronJobsRunner) cronTick(ctx context.Context, event cloudevents.Event) 
 			// Exhausted number of retries. Event is lost.
 			a.Logger.Error("failed to send cloudevent result: ", zap.Any("result", result),
 				zap.String("source", source), zap.String("target", target), zap.String("id", event.ID()))
+				// cron job failed 알림
 		}
 	}
 }

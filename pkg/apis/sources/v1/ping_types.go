@@ -81,6 +81,11 @@ type PingSourceSpec struct {
 	// Mutually exclusive with Data.
 	// +optional
 	DataBase64 string `json:"dataBase64,omitempty"`
+
+	// AlertID is target alert ID
+	// Mutually exclusive with AlertID.
+	// +optional
+	AlertID string `json:"alertID,omitempty"`
 }
 
 // PingSourceStatus defines the observed state of PingSource.
